@@ -1,0 +1,5 @@
+client_secrets.json
+env/
+meat_n_eat.sqlite
+*.idea/
+__pycache__/
