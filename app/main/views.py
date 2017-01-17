@@ -48,7 +48,7 @@ def start():
 def login(provider):
     """
     :param provider: oauth provider, e.g. Google or Facebook
-    :return: post a one-time oauth code and return token
+    :return: send one-time oauth code and receive token
     """
     # step 1: parse the auth code
     # auth code is door user opgehaald bij google
@@ -118,31 +118,7 @@ def login(provider):
 #     return "logout"
 
 
-@main.route('/api/v1/users', methods=['GET', 'POST', 'PUT', 'DELETE'])
-#@auth.login_required
-def users_function():
-
-    if request.method == 'GET':
-        return get_all_users()
-
-    elif request.method == 'POST':
-        return create_user()
-
-    elif request.method == 'PUT':
-        return modify_user()
-
-    elif request.method == 'DELETE':
-        return delete_user()
-
-
-def get_all_users():
-    """
-    :return: show all users in json format
-    """
-    users = db.session.query(User).all()
-    return jsonify(users=[user.serialize for user in users])
-
-
+@main.route('/api/v1/users', methods=['POST'])
 def create_user():
     content = request.get_json(force=True)
     username = content.get('username')
@@ -159,6 +135,28 @@ def create_user():
         {'username': user.username}, 201)
 
 
+@main.route('/api/v1/users', methods=['GET', 'PUT', 'DELETE'])
+@auth.login_required
+def users_function():
+
+    if request.method == 'GET':
+        return get_all_users()
+
+    elif request.method == 'PUT':
+        return modify_user()
+
+    elif request.method == 'DELETE':
+        return delete_user()
+
+
+def get_all_users():
+    """
+    :return: show all users in json format
+    """
+    users = db.session.query(User).all()
+    return jsonify(users=[user.serialize for user in users])
+
+
 def modify_user():
     return 'modify user'
 
@@ -170,7 +168,6 @@ def delete_user():
 @main.route('/api/v1/users/<int:id>')
 @auth.login_required
 def get_user(id):
-    print('enter get_user')
     user = User.query.filter_by(id=id).first()
     if not user:
         return make_response('user not found', 400)
@@ -200,13 +197,14 @@ def create_request():
     content = request.get_json(force=True)
     location_string = content.get('location_string')
     latitude, longitude = get_geocode_location(location_string)
-    r = Request(meal_type=content.get('meal_type'),
+    meal_request = Request(meal_type=content.get('meal_type'),
                 location_string=location_string,
                 latitude=latitude, longitude=longitude,
                 meal_time=content.get('meal_time'), user_id=g.user.id)
-    db.session.add(r)
+    db.session.add(meal_request)
     db.session.commit()
-    return 'request created'
+    meal_request = db.session.query(Request).order_by(Request.id.desc()).first()
+    return jsonify({'request_id': meal_request.id})
 
 
 def get_geocode_location(location_string):

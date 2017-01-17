@@ -75,6 +75,7 @@ class Request(db.Model):
             'filled': self.filled,
         }
 
+
 class Proposal(db.Model):
     __tablename__ = 'responses'
     id = db.Column(db.Integer, primary_key=True)
