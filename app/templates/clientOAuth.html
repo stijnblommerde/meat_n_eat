@@ -49,8 +49,6 @@
 <!--NEW GOOGLE SIGN IN CODE -->
 <script>
 function signInCallback(json) {
-  console.log('inside callback function');
-  console.log(json);
   // authResult = JSON.parse(json);
   authResult = json;
   if (authResult['code']) {

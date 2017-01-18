@@ -16,6 +16,17 @@ class User(db.Model):
     picture = db.Column(db.String)
     requests = db.relationship('Request', backref='user', lazy='dynamic')
 
+    @property
+    def password(self):
+        raise AttributeError('password is not a readable attribute')
+
+    @password.setter
+    def password(self, password):
+        """ we don't store the password directly, but we store its
+        hash
+        """
+        self.hash_password(password)
+
     def hash_password(self, password):
         self.password_hash = pwd_context.encrypt(password)
 
@@ -26,7 +37,6 @@ class User(db.Model):
         s = Serializer(secret_key, expires_in=expiration)
         return s.dumps({'id': self.id})
 
-    #Add a method to verify auth tokens here
     @staticmethod
     def verify_auth_token(token):
         s = Serializer(secret_key)
