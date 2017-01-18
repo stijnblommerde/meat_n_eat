@@ -131,8 +131,7 @@ def create_user():
     user.hash_password(password)
     db.session.add(user)
     db.session.commit()
-    return jsonify(
-        {'username': user.username}, 201)
+    return jsonify({'username': user.username}, 201)
 
 
 @main.route('/api/v1/users', methods=['GET', 'PUT', 'DELETE'])
@@ -274,6 +273,7 @@ def get_all_proposals():
 
 
 def create_proposal():
+    print('enter create_proposal')
     content = request.get_json(force=True)
     user_proposed_from = int(g.user.id)
     user_proposed_to = int(content['user_proposed_to'])
@@ -286,7 +286,7 @@ def create_proposal():
                  filled=False)
     db.session.add(p)
     db.session.commit()
-    return 'proposal created'
+    return jsonify({'proposal_id': p.id})
 
 
 @main.route('/api/v1/proposals<int:id>', methods=['GET', 'PUT', 'DELETE'])
