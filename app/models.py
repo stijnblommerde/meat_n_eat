@@ -14,7 +14,8 @@ class User(db.Model):
     password_hash = db.Column(db.String(64))
     email = db.Column(db.String, index=True)
     picture = db.Column(db.String)
-    requests = db.relationship('Request', backref='user', lazy='dynamic')
+    requests = db.relationship('Request', backref=db.backref(
+        'user'), lazy='dynamic', cascade="all, delete, delete-orphan")
 
     @property
     def password(self):
@@ -69,7 +70,9 @@ class Request(db.Model):
     longitude = db.Column(db.Numeric)
     meal_time = db.Column(db.String) # e.g. 'breakfast'
     filled = db.Column(db.Boolean)
-    proposals = db.relationship('Proposal', backref='request', lazy='dynamic')
+    proposals = db.relationship(
+        'Proposal', backref=db.backref('request'), lazy='dynamic',
+        cascade="all, delete, delete-orphan")
 
     @property
     def serialize(self):
@@ -85,9 +88,13 @@ class Request(db.Model):
             'filled': self.filled,
         }
 
+    def get_request(self, id):
+
+
+
 
 class Proposal(db.Model):
-    __tablename__ = 'responses'
+    __tablename__ = 'proposals'
     id = db.Column(db.Integer, primary_key=True)
     user_proposed_to = db.Column(db.Integer)
     user_proposed_from = db.Column(db.Integer)

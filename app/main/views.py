@@ -289,7 +289,8 @@ def create_proposal():
     return jsonify({'proposal_id': p.id})
 
 
-@main.route('/api/v1/proposals<int:id>', methods=['GET', 'PUT', 'DELETE'])
+@main.route('/api/v1/proposals/<int:id>', methods=['GET', 'PUT', 'DELETE'])
+@auth.login_required
 def proposals_id(id):
 
     if request.method == 'GET':
@@ -307,11 +308,47 @@ def get_proposal(id):
 
 
 def update_proposal(id):
-    return 'update single proposal'
+    """
+    :param id: id of proposal
+    :return: user accepts proposal
+    """
+    content = request.get_json(force=True)
+    proposal = db.session.query(Proposal).filter_by(id=id).first()
+
+    if not proposal:
+        return 'proposal not found'
+
+    if content.get('filled'):
+        proposal.filled = True
+        db.session.add(proposal)
+        db.session.commit()
+
+        # find restaurant
+
+
+        date = create_date(
+            user_1=proposal.user_proposed_to,
+            user_2=proposal.user_proposed_from,
+            restaurant_name=,
+
+        )
+
+        return 'proposal accepted'
+
+    return 'proposal not changed'
 
 
 def delete_proposal(id):
-    return 'delete single proposal'
+    """
+    :param id: id of proposal
+    :return: user denies proposal
+    """
+    proposal = db.session.query(Proposal).filter_by(id=id).first()
+    if not proposal:
+        return 'proposal not found'
+    db.session.delete(proposal)
+    db.session.commit()
+    return 'proposal deleted'
 
 
 @main.route('/api/v1/dates', methods=['GET', 'POST'])
@@ -342,6 +379,10 @@ def get_dates():
 
 
 def create_date():
+    # TODO: enter Date details
+    date = Date()
+    db.session.add(date)
+    db.session.commit()
     return 'create date for user'
 
 
