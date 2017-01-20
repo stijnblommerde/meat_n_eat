@@ -3,25 +3,32 @@ import unittest
 import time
 
 from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
 
 from app import create_app, db
 from app.models import User
 
+chrome_options = Options()
+
 
 class SeleniumTestCase(unittest.TestCase):
-    client = None
+    driver = None
 
     @classmethod
-    def setupClass(cls):
+    def setUpClass(cls):
         print('enter setupClass')
         # start Firefox
         try:
-            cls.client = webdriver.Firefox()
+            #cls.driver = webdriver.Firefox()
+            chrome_options.add_argument("user-data-dir=/Users/stijnblommerde/Library/Application Support/Google/Chrome/")
+            cls.driver = webdriver.Chrome(chrome_options=chrome_options)
+            #cls.driver = webdriver.Chrome()
+            print('after cls.driver')
         except:
             pass
 
         # skip these tests if the browser could not be started
-        if cls.client:
+        if cls.driver:
             # create the application
             cls.app = create_app('testing')
             cls.app_context = cls.app.app_context()
@@ -46,11 +53,10 @@ class SeleniumTestCase(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        print('enter teardownclass')
-        if cls.client:
+        if cls.driver:
             # stop the flask server and the browser
-            cls.client.get('http://localhost:5000/shutdown')
-            cls.client.quit()
+            cls.driver.get('http://localhost:5000/shutdown')
+            cls.driver.quit()
 
             # destroy database
             db.drop_all()
@@ -60,21 +66,14 @@ class SeleniumTestCase(unittest.TestCase):
             cls.app_context.pop()
 
     def setUp(self):
-        self.setupClass()
-        if not self.client:
+        if not self.driver:
             self.skipTest('Web browser not available')
 
     def tearDown(self):
-        self.tearDownClass()
         pass
 
-    def test_start(self):
-        # navigate to start page
-        self.client.get('http://localhost:5000/api/v1/clientOAuth')
-        self.client.find_element_by_id('signinButton').click()
-        #time.sleep(3)
-        self.client.switch_to.window("Sign in - Google Accounts")
-        #TODO: add username and password as environmental vars for tests
-        self.client.find_element_by_id('Email').send_keys('')
-        time.sleep(3)
-        print("result:", self.client.find_element_by_id('result').text)
+    # def test_start(self):
+    #     # navigate to start page
+    #     self.driver.get('http://localhost:5000/api/v1/clientOAuth')
+    #     self.driver.find_element_by_id('signinButton').click()
+    #     #TODO: unable to run signInCallback

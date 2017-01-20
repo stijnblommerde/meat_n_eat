@@ -68,7 +68,7 @@ class Request(db.Model):
     latitude = db.Column(db.Numeric)
     longitude = db.Column(db.Numeric)
     meal_time = db.Column(db.String) # e.g. 'breakfast'
-    filled = db.Column(db.Boolean)
+    filled = db.Column(db.Boolean, default=False)
     proposals = db.relationship('Proposal', backref='request', lazy='dynamic')
 
     @property
@@ -92,7 +92,7 @@ class Proposal(db.Model):
     user_proposed_to = db.Column(db.Integer)
     user_proposed_from = db.Column(db.Integer)
     request_id = db.Column(db.Integer, db.ForeignKey('requests.id'))
-    filled = db.Column(db.Boolean)
+    filled = db.Column(db.Boolean, default=False)
 
     @property
     def serialize(self):

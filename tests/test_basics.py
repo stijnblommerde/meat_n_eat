@@ -1,17 +1,22 @@
-import unittest
-import json
-from httplib2 import Http
-from flask import current_app
-from app import create_app, db
-from app.main.views import get_geocode_location
-import sys
-import string
-import random
+'''
+test requirements:
+ - terminal tab 1: load test_vars.sh & start server (python manage.py runserver)
+ - terminal tab 2: load test_vars.sh & run tests (python manage.py test)
+'''
 
-from app.models import User
+import json
+import unittest
+from flask import current_app
+from httplib2 import Http
+
+from app import create_app, db
+from test_utils import create_user, create_request, create_proposal
+
+from app.models import User, Request
 
 
 class BasicsTestCase(unittest.TestCase):
+
     def setUp(self):
         self.app = create_app('testing')
         self.app_context = self.app.app_context()
@@ -31,92 +36,89 @@ class BasicsTestCase(unittest.TestCase):
     def test_app_is_testing(self):
         self.assertTrue(current_app.config['TESTING'])
 
-    def test_create_user(self):
-        result = self.create_user('stijn', 'test')
-        self.assertTrue(result == {'username': 'stijn'})
+    # def test_create_user(self):
+    #     user_id = create_user('stijn', 'test')
+    #     self.assertTrue(user_id)
+    #
+    # def test_create_request(self):
+    #     # create user
+    #     create_user('stijn', 'test')
+    #     result = create_request('stijn', 'test')
+    #     self.assertTrue(result)
+    #
+    # def test_get_all_requests(self):
+    #
+    #     # create self and other
+    #     create_user('stijn', 'test')
+    #     create_user('casper', 'test')
+    #
+    #     # create two requests by other, one filled and one open
+    #     create_request('casper', 'test', False)
+    #     create_request('casper', 'test', True)
+    #
+    #     # get all open meal requests by other
+    #     try:
+    #         h = Http()
+    #         h.add_credentials(name='stijn', password='test')
+    #         url = 'http://localhost:5000/api/v1/requests'
+    #         resp, content_bytes = h.request(url, method='GET')
+    #         if resp['status'] != '201' and resp['status'] != '200':
+    #             raise Exception('Received an unsuccessful status code of %s' %
+    #                             resp['status'])
+    #         content = json.loads(content_bytes.decode())
+    #
+    #         # expected one meal request by user with id = 2
+    #         self.assertTrue(len(content['requests']) == 1)
+    #         self.assertTrue(content['requests'][0]['user_id'] == 2)
+    #     except Exception as err:
+    #         print(err)
+    #         return None
 
-    def create_user(self, username, password):
-        h = Http()
-        url = 'http://localhost:5000/api/v1/users'
-        data = dict(username=username, password=password)
+    # def test_create_proposal(self):
+    #     create_user('stijn', 'test')
+    #     result = create_proposal('stijn', 'test')
+    #     self.assertTrue(result)
+
+    def test_get_all_proposals(self):
+        """
+        :return: show all proposals made by yourself and others
+        """
+
+        # create self and other
+        user1_id = create_user('stijn', 'test')    # id = 1
+        user2_id = create_user('casper', 'test')   # id = 2
+
+        # others proposal on your request
+        request1_id = create_request('stijn', 'test', False)
+        proposal1_id = create_proposal('casper', 'test', request1_id, False)
+
+        # your proposal on others request
+        request2_id = create_request('casper', 'test', False)
+        proposal2_id = create_proposal('stijn', 'test', request2_id, False)
+
+        # get all open proposals (proposed meetups)
         try:
-            resp, content_bytes = h.request(
-                url, method='POST',
-                body=json.dumps(data),
-                headers={"Content-Type": "application/json"})
-            if resp['status'] != '201' and resp['status'] != '200':
-                raise Exception('Received an unsuccessful status code of %s' %
-                                resp['status'])
-            content = json.loads(content_bytes.decode())
-            user = content[0]
-            return user
-        except Exception as err:
-            print(err)
-            return None
-
-    def test_create_request(self):
-        result = self.create_request()
-        self.assertTrue(result != None)
-
-    def create_request(self):
-        try:
-            # create user
-            self.create_user('stijn', 'test')
-            user = db.session.query(User).filter_by(username='stijn').first()
-            # create request
             h = Http()
             h.add_credentials(name='stijn', password='test')
-            url = 'http://localhost:5000/api/v1/requests'
-            location_string = 'amsterdam'
-            data = dict(meal_type='pizza',
-                        location_string=location_string,
-                        meal_time='lunch',
-                        user_id=user.id,
-                        filled=False)
-            resp, content_bytes = h.request(
-                url, method='POST',
-                body=json.dumps(data),
-                headers={"Content-Type": "application/json"})
-            content = json.loads(content_bytes.decode())
-            request_id = content.get('request_id')
-            return request_id
-        except Exception as err:
-            print(err)
-            return None
-
-    def test_create_proposal(self):
-        result = self.create_proposal()
-        self.assertTrue(result != None)
-
-    def create_proposal(self):
-        try:
-            # create users and request
-            self.create_user('user1', 'password1')
-            self.create_user('user2', 'password2')
-            user1 = db.session.query(User).filter_by(username='user1').first()
-            user2 = db.session.query(User).filter_by(username='user2').first()
-            request_id = self.create_request()
-
-            # create proposal
-            h = Http()
-            h.add_credentials(name='user1', password='password1')
             url = 'http://localhost:5000/api/v1/proposals'
-            resp, content_bytes = h.request(
-                url, method='POST',
-                body=json.dumps(
-                    dict(user_proposed_from=user1.id,
-                         user_proposed_to=user2.id,
-                         request_id=request_id,
-                         filled=False,)),
-                headers={"Content-Type": "application/json"})
+            resp, content_bytes = h.request(url, method='GET')
             if resp['status'] != '201' and resp['status'] != '200':
                 raise Exception('Received an unsuccessful status code of %s' %
                                 resp['status'])
             content = json.loads(content_bytes.decode())
-            proposal_id = content.get('proposal_id')
-            return proposal_id
+
+            # expected: one proposal from user 2
+            self.assertTrue(len(content['proposals']) == 2, 'two proposals')
+            self.assertTrue(content['proposals'][0]['user_id'] == 2,
+                            'proposal 1 from user 2')
+            self.assertTrue(content['proposals'][1]['user_id'] == 1,
+                            'proposal 2 from user 1')
         except Exception as err:
             print(err)
             return None
 
+    def test_create_date(self):
+        """
+        :return: accept proposal and create a meetup date
+        """
 

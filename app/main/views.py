@@ -4,6 +4,7 @@ from flask import request, make_response, json, jsonify, \
     render_template, g, url_for, abort, redirect, current_app
 from oauth2client.client import flow_from_clientsecrets, FlowExchangeError
 from flask_httpauth import HTTPBasicAuth
+from sqlalchemy import or_
 
 from . import main
 from .. import db
@@ -123,7 +124,7 @@ def create_user():
     content = request.get_json(force=True)
     username = content.get('username')
     password = content.get('password')
-    if username is None or password is None:
+    if not username or not password:
         return make_response('username or password missing', 400)
     if db.session.query(User).filter_by(username=username).first() is not None:
         return make_response('user exists already', 400)
@@ -131,7 +132,8 @@ def create_user():
     user.hash_password(password)
     db.session.add(user)
     db.session.commit()
-    return jsonify({'username': user.username}, 201)
+    user = db.session.query(User).order_by(User.id.desc()).first()
+    return jsonify({'user_id': user.id})
 
 
 @main.route('/api/v1/users', methods=['GET', 'PUT', 'DELETE'])
@@ -185,21 +187,29 @@ def requests_function():
 
 
 def get_all_requests():
-    requests = db.session.query(Request).all()
-    if not requests:
-        return 'no open requests'
+    """
+    :return: show all open requests of others
+    """
+    user = g.user
+    meal_requests = db.session.query(Request).filter(
+        Request.user_id != user.id, Request.filled != False).all()
+    if not meal_requests:
+        return 'no open meal requests of others'
     else:
-        return jsonify(requests=[r.serialize for r in requests])
+        return jsonify(requests=[r.serialize for r in meal_requests])
 
 
 def create_request():
     content = request.get_json(force=True)
     location_string = content.get('location_string')
     latitude, longitude = get_geocode_location(location_string)
-    meal_request = Request(meal_type=content.get('meal_type'),
-                location_string=location_string,
-                latitude=latitude, longitude=longitude,
-                meal_time=content.get('meal_time'), user_id=g.user.id)
+    meal_request = Request(
+        meal_type=content.get('meal_type'),
+        location_string=location_string,
+        latitude=latitude, longitude=longitude,
+        meal_time=content.get('meal_time'),
+        user_id=g.user.id,
+        filled=content.get('filled'),)
     db.session.add(meal_request)
     db.session.commit()
     meal_request = db.session.query(Request).order_by(Request.id.desc()).first()
@@ -215,7 +225,6 @@ def get_geocode_location(location_string):
     :param location_string:
     :return: latitude and longitude of location string
     """
-    
     location_string = location_string.replace(" ", "+")
     url = (
         'https://maps.googleapis.com/maps/api/geocode/json?address=%s&key=%s'%
@@ -255,7 +264,6 @@ def delete_request(id):
 @main.route('/api/v1/proposals', methods=['GET', 'POST'])
 @auth.login_required
 def proposals_function():
-
     if request.method == 'GET':
         return get_all_proposals()
 
@@ -265,25 +273,26 @@ def proposals_function():
 
 def get_all_proposals():
     user = g.user
-    proposals = db.session.query(Proposal).filter_by(user_proposed_to=user.id,
-                                                     filled=False).all()
+    proposals = db.session.query(Proposal).filter(
+        or_(Proposal.user_proposed_to == user.id,
+            Proposal.user_proposed_from == user.id),
+        Proposal.filled).all()
     if not proposals:
         return 'no open proposals'
     return jsonify(proposals=[p.serialize for p in proposals])
 
 
 def create_proposal():
-    print('enter create_proposal')
     content = request.get_json(force=True)
-    user_proposed_from = int(g.user.id)
-    user_proposed_to = int(content['user_proposed_to'])
+    user_proposed_from = g.user.id
+    user_proposed_to = content.get('user_proposed_to')
     if user_proposed_from == user_proposed_to:
         return make_response(json.dumps("Cannot make proposal to yourself."),
                              400)
     p = Proposal(user_proposed_to=user_proposed_to,
                  user_proposed_from=user_proposed_from,
-                 request_id=content['request_id'],
-                 filled=False)
+                 request_id=content.get('request_id'),
+                 filled=content.get('filled'))
     db.session.add(p)
     db.session.commit()
     return jsonify({'proposal_id': p.id})
@@ -321,6 +330,11 @@ def dates():
         return get_dates()
 
     elif request.method == 'POST':
+        content = request.get_json(force=True)
+        accept_proposal = content.get('accept_proposal')
+        if accept_proposal:
+           # TODO: add logic here
+
         return create_date()
 
 
