@@ -139,6 +139,7 @@ def create_user():
 @auth.login_required
 def users_function():
     if request.method == 'GET':
+        User.do()
         users = User.get_all()
         return jsonify(users=[user.serialize for user in users])
 
@@ -204,25 +205,6 @@ def create_request():
     meal_request = db.session.query(Request).order_by(Request.id.desc()).first()
     return jsonify({'request_id': meal_request.id})
 
-
-def get_geocode_location(location_string):
-    """ Use Google Maps to convert a location into Latitute/Longitute coordinates
-
-    FORMAT: https://maps.googleapis.com/maps/api/geocode/json?
-    address=1600+Amphitheatre+Parkway,+Mountain+View,+CA&key=API_KEY
-
-    :param location_string:
-    :return: latitude and longitude of location string
-    """
-    location_string = location_string.replace(" ", "+")
-    url = (
-        'https://maps.googleapis.com/maps/api/geocode/json?address=%s&key=%s'%
-        (location_string, current_app.config['GOOGLE_API_KEY']))
-    h = httplib2.Http()
-    result = json.loads(h.request(url,'GET')[1].decode('utf-8'))
-    latitude = result['results'][0]['geometry']['location']['lat']
-    longitude = result['results'][0]['geometry']['location']['lng']
-    return latitude,longitude
 
 
 @main.route('/api/v1/requests/<int:id>', methods=['GET', 'PUT', 'DELETE'])

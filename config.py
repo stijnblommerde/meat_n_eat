@@ -1,3 +1,4 @@
+import datetime
 import os
 from flask import json
 
@@ -5,10 +6,16 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 
 
 class Config:
-    CLIENT_ID = json.loads(open('client_secrets.json', 'r').read())['web'][
-        'client_id']
-    GOOGLE_API_KEY = "AIzaSyCso6Rl-jJK3wv-chB0yOaHPKbZb9uJ-LA"
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    CLIENT_ID = json.loads(open('client_secrets.json', 'r').read())['web'][
+        'client_id'] # Google oauth
+    GOOGLE_API_KEY = os.environ.get('GOOGLE_API_KEY') # google geocode api
+    print(GOOGLE_API_KEY)
+    FOURSQUARE_CLIENT_ID = os.environ.get('FOURSQUARE_CLIENT_ID')
+    FOURSQUARE_CLIENT_SECRET = os.environ.get('FOURSQUARE_CLIENT_SECRET')
+    FOURSQUARE_VERSION = str(datetime.date.today()).replace('-', '')
+    FOURSQUARE_INTENT = "browse"
+    FOURSQUARE_RADIUS = "10000"
 
     @staticmethod
     def init_app(app):

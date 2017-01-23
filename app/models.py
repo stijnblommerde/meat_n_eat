@@ -7,10 +7,14 @@ secret_key = ''.join(random.choice(string.ascii_uppercase + string.digits) for
                      x in range(32))
 
 
-class Common(db.model):
+class SharedMethods(object):
+
+    @classmethod
+    def do(cls):
+        print('hello')
 
 
-class User(db.Model):
+class User(db.Model, SharedMethods):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(32), index=True)
@@ -62,9 +66,9 @@ class User(db.Model):
             'email': self.email
         }
 
-    @staticmethod
-    def get_all():
-        return db.session.query(User).all()
+    @classmethod
+    def get_all(cls):
+        return db.session.query(cls).all()
 
     def update(self, kwargs):
         for key, value in kwargs.items():
