@@ -10,8 +10,23 @@ secret_key = ''.join(random.choice(string.ascii_uppercase + string.digits) for
 class SharedMethods(object):
 
     @classmethod
-    def do(cls):
-        print('hello')
+    def get_record_by_id(cls, id):
+        return db.session.query(cls).filter_by(id=id).first()
+
+    @property
+    def serialize(self):
+        """Return object data in easily serializeable format"""
+        d = {c.name: getattr(self, c.name) for c in self.__table__.columns}
+        return d
+
+    def update(self, kwargs):
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+        db.session.add(self)
+        if not db.session.is_modified(self):
+            return
+        db.session.commit()
+        return self
 
 
 class User(db.Model, SharedMethods):
@@ -57,27 +72,9 @@ class User(db.Model, SharedMethods):
         user_id = data['id']
         return user_id
 
-    #TODO: add picture (gravatar) and requests
-    @property
-    def serialize(self):
-        """Return object data in easily serializeable format"""
-        return {
-            'username': self.username,
-            'email': self.email
-        }
-
     @classmethod
     def get_all(cls):
         return db.session.query(cls).all()
-
-    def update(self, kwargs):
-        for key, value in kwargs.items():
-            setattr(self, key, value)
-        db.session.add(self)
-        if not db.session.is_modified(self):
-            return
-        db.session.commit()
-        return self
 
     def delete(self):
         db.session.delete(self)
@@ -91,7 +88,7 @@ class User(db.Model, SharedMethods):
         return user
 
 
-class Request(db.Model):
+class Request(db.Model, SharedMethods):
     __tablename__ = 'requests'
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
@@ -105,22 +102,11 @@ class Request(db.Model):
         'Proposal', backref=db.backref('request'), lazy='dynamic',
         cascade="all, delete, delete-orphan")
 
-    @property
-    def serialize(self):
-        """Return object data in easily serializeable format"""
-        return {
-            'id': self.id,
-            'user_id': self.user_id,
-            'meal_type': self.meal_type,
-            'location_string': self.location_string,
-            'latitude': str(self.latitude),
-            'longitude': str(self.longitude),
-            'meal_time': self.meal_time,
-            'filled': self.filled,
-        }
+    def __str__(self):
+        return
 
 
-class Proposal(db.Model):
+class Proposal(db.Model, SharedMethods):
     __tablename__ = 'proposals'
     id = db.Column(db.Integer, primary_key=True)
     user_proposed_to = db.Column(db.Integer)
@@ -128,19 +114,8 @@ class Proposal(db.Model):
     request_id = db.Column(db.Integer, db.ForeignKey('requests.id'))
     filled = db.Column(db.Boolean, default=False)
 
-    @property
-    def serialize(self):
-        """Return object data in easily serializeable format"""
-        return {
-            'id': self.id,
-            'user_proposed_to': self.user_proposed_to,
-            'user_proposed_from': self.user_proposed_from,
-            'request_id': self.request_id,
-            'filled': self.filled,
-        }
 
-
-class Date(db.Model):
+class Date(db.Model, SharedMethods):
     __tablename__ = 'dates'
     id = db.Column(db.Integer, primary_key=True)
     user_1 = db.Column(db.Integer)

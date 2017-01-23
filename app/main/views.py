@@ -6,6 +6,7 @@ from oauth2client.client import flow_from_clientsecrets, FlowExchangeError
 from flask_httpauth import HTTPBasicAuth
 from sqlalchemy import or_
 
+from app.external_apis import get_geocode_location
 from . import main
 from .. import db
 from ..models import User, Request, Proposal, Date
@@ -139,7 +140,6 @@ def create_user():
 @auth.login_required
 def users_function():
     if request.method == 'GET':
-        User.do()
         users = User.get_all()
         return jsonify(users=[user.serialize for user in users])
 
@@ -147,7 +147,10 @@ def users_function():
 @main.route('/api/v1/users/<int:id>', methods=['GET', 'PUT', 'DELETE'])
 @auth.login_required
 def get_user(id):
-    user = User.get_by_id(User, id)
+    user = User.get_record_by_id(id)
+
+    if not user:
+        return 'User not found'
 
     if request.method == 'GET':
         return jsonify(user.serialize)
@@ -157,7 +160,8 @@ def get_user(id):
         updated_user = user.update(content)
 
         if not updated_user:
-            return 'User attributes updates not found'
+            return 'Nothing to update'
+
         return jsonify(updated_user.serialize)
 
     elif request.method == 'DELETE':
@@ -206,22 +210,27 @@ def create_request():
     return jsonify({'request_id': meal_request.id})
 
 
-
 @main.route('/api/v1/requests/<int:id>', methods=['GET', 'PUT', 'DELETE'])
 def requests_id(id):
+    meal_request = Request.get_record_by_id(id)
+
+    if not meal_request:
+        return 'Meal_request not found'
 
     if request.method == 'GET':
-        return get_request(id)
+        return jsonify(meal_request.serialize)
 
     elif request.method == 'PUT':
-        return update_request(id)
+        content = request.get_json(force=True)
+        updated_meal_request = meal_request.update(content)
+
+        if not updated_meal_request:
+            return 'Nothing to update'
+
+        return jsonify(updated_meal_request.serialize)
 
     elif request.method == 'DELETE':
         return delete_request(id)
-
-
-def get_request(id):
-    return 'get single request'
 
 
 def update_request(id):
@@ -272,20 +281,19 @@ def create_proposal():
 @main.route('/api/v1/proposals/<int:id>', methods=['GET', 'PUT', 'DELETE'])
 @auth.login_required
 def proposals_id(id):
+    proposal = Proposal.get_record_by_id(id)
+
+    if not proposal:
+        return 'Proposal not found'
 
     if request.method == 'GET':
-        return get_proposal(id)
+        return jsonify(proposal.serialize)
 
     elif request.method == 'PUT':
         return update_proposal(id)
 
     elif request.method == 'DELETE':
         return delete_proposal(id)
-
-
-def get_proposal(id):
-    return 'get single proposal'
-
 
 def update_proposal(id):
     """
@@ -345,11 +353,15 @@ def dates():
         return create_date()
 
 
-@main.route('/api/v1/dates<int:id>', methods=['GET', 'PUT', 'DELETE'])
+@main.route('/api/v1/dates/<int:id>', methods=['GET', 'PUT', 'DELETE'])
 def get_date(id):
+    date = Date.get_record_by_id(id)
+
+    if not date:
+        return 'Date not found'
 
     if request.method == 'GET':
-        return get_date(id)
+        return jsonify(date.serialize)
 
     elif request.method == 'PUT':
         return update_date(id)
@@ -368,10 +380,6 @@ def create_date():
     db.session.add(date)
     db.session.commit()
     return 'create date for user'
-
-
-def get_date(id):
-    return 'get single date'
 
 
 def update_date(id):
