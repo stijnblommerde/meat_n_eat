@@ -132,47 +132,36 @@ def create_user():
     user.hash_password(password)
     db.session.add(user)
     db.session.commit()
-    user = db.session.query(User).order_by(User.id.desc()).first()
     return jsonify({'user_id': user.id})
 
 
-@main.route('/api/v1/users', methods=['GET', 'PUT', 'DELETE'])
+@main.route('/api/v1/users', methods=['GET'])
 @auth.login_required
 def users_function():
-
     if request.method == 'GET':
-        return get_all_users()
-
-    elif request.method == 'PUT':
-        return modify_user()
-
-    elif request.method == 'DELETE':
-        return delete_user()
+        users = User.get_all()
+        return jsonify(users=[user.serialize for user in users])
 
 
-def get_all_users():
-    """
-    :return: show all users in json format
-    """
-    users = db.session.query(User).all()
-    return jsonify(users=[user.serialize for user in users])
-
-
-def modify_user():
-    return 'modify user'
-
-
-def delete_user():
-    return 'delete user'
-
-
-@main.route('/api/v1/users/<int:id>')
+@main.route('/api/v1/users/<int:id>', methods=['GET', 'PUT', 'DELETE'])
 @auth.login_required
 def get_user(id):
-    user = User.query.filter_by(id=id).first()
-    if not user:
-        return make_response('user not found', 400)
-    return jsonify({'username': user.username})
+    user = User.get_by_id(User, id)
+
+    if request.method == 'GET':
+        return jsonify(user.serialize)
+
+    elif request.method == 'PUT':
+        content = request.get_json(force=True)
+        updated_user = user.update(content)
+
+        if not updated_user:
+            return 'User attributes updates not found'
+        return jsonify(updated_user.serialize)
+
+    elif request.method == 'DELETE':
+        user.delete()
+        return 'User has been deleted'
 
 
 @main.route('/api/v1/requests', methods=['GET', 'POST'])
@@ -336,10 +325,9 @@ def update_proposal(id):
 
 
         date = create_date(
-            user_1=proposal.user_proposed_to,
-            user_2=proposal.user_proposed_from,
-            restaurant_name=,
-
+            # user_1=proposal.user_proposed_to,
+            # user_2=proposal.user_proposed_from,
+            # restaurant_name=,
         )
 
         return 'proposal accepted'
@@ -370,8 +358,8 @@ def dates():
         content = request.get_json(force=True)
         accept_proposal = content.get('accept_proposal')
         if accept_proposal:
-           # TODO: add logic here
-
+            # TODO: add logic here
+            pass
         return create_date()
 
 

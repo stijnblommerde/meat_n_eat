@@ -7,6 +7,9 @@ secret_key = ''.join(random.choice(string.ascii_uppercase + string.digits) for
                      x in range(32))
 
 
+class Common(db.model):
+
+
 class User(db.Model):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
@@ -59,6 +62,30 @@ class User(db.Model):
             'email': self.email
         }
 
+    @staticmethod
+    def get_all():
+        return db.session.query(User).all()
+
+    def update(self, kwargs):
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+        db.session.add(self)
+        if not db.session.is_modified(self):
+            return
+        db.session.commit()
+        return self
+
+    def delete(self):
+        db.session.delete(self)
+        db.session.commit()
+
+    @staticmethod
+    def get_user_by_id(id):
+        user = User.query.filter_by(id=id).first()
+        if not user:
+            return 'User not found'
+        return user
+
 
 class Request(db.Model):
     __tablename__ = 'requests'
@@ -87,10 +114,6 @@ class Request(db.Model):
             'meal_time': self.meal_time,
             'filled': self.filled,
         }
-
-    def get_request(self, id):
-
-
 
 
 class Proposal(db.Model):

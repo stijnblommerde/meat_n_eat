@@ -3,3 +3,7 @@ env/
 meat_n_eat.sqlite
 *.idea/
 __pycache__/
+app/__init__.pyc
+data-dev.sqlite
+data-test.sqlite
+geckodriver.log
