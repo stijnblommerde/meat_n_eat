@@ -120,33 +120,42 @@ def login(provider):
 #     return "logout"
 
 
-@main.route('/api/v1/users', methods=['POST'])
-def create_user():
-    content = request.get_json(force=True)
-    username = content.get('username')
-    password = content.get('password')
-    if not username or not password:
-        return make_response('username or password missing', 400)
-    if db.session.query(User).filter_by(username=username).first() is not None:
-        return make_response('user exists already', 400)
-    user = User(username=username)
-    user.hash_password(password)
-    db.session.add(user)
-    db.session.commit()
-    return jsonify({'user_id': user.id})
-
-
-@main.route('/api/v1/users', methods=['GET'])
+@main.route('/api/v1/users', methods=['GET', 'POST'])
 @auth.login_required
 def users_function():
+    """ show all user (GET) or create user (POST)
+    :return: return JSON of all users (GET) or new user (POST).
+    """
     if request.method == 'GET':
-        users = User.get_all()
+        users = User.get_all_records()
         return jsonify(users=[user.serialize for user in users])
+
+    elif request.method == 'POST':
+        content = request.get_json(force=True)
+        username = content.get('username')
+        email = content.get('email')
+        password = content.get('password')
+        picture = content.get('picture')
+        if not (username and password and email):
+            return make_response('username, password and email required', 400)
+        if db.session.query(User).filter_by(
+                email=email).first():
+            return make_response('user exists already', 400)
+        user = User(username=username, email=email, password=password,
+                    picture=picture)
+        db.session.add(user)
+        db.session.commit()
+        return jsonify(user.serialize)
 
 
 @main.route('/api/v1/users/<int:id>', methods=['GET', 'PUT', 'DELETE'])
 @auth.login_required
-def get_user(id):
+def user_id_function(id):
+    """
+    :param id: user id (int)
+    :return: return JSON of user (GET) or changed user (PUT) or
+    message (DELETE)
+    """
     user = User.get_record_by_id(id)
 
     if not user:
@@ -172,6 +181,9 @@ def get_user(id):
 @main.route('/api/v1/requests', methods=['GET', 'POST'])
 @auth.login_required
 def requests_function():
+    """ show all requests (GET) or create request (POST)
+    :return: return JSON of all requests (GET) or new request (POST).
+    """
 
     if request.method == 'GET':
         return get_all_requests()
@@ -186,7 +198,7 @@ def get_all_requests():
     """
     user = g.user
     meal_requests = db.session.query(Request).filter(
-        Request.user_id != user.id, Request.filled != False).all()
+        Request.user_id != user.id, Request.filled != True).all()
     if not meal_requests:
         return 'no open meal requests of others'
     else:
@@ -196,6 +208,8 @@ def get_all_requests():
 def create_request():
     content = request.get_json(force=True)
     location_string = content.get('location_string')
+    if not location_string:
+        return 'Location required'
     latitude, longitude = get_geocode_location(location_string)
     meal_request = Request(
         meal_type=content.get('meal_type'),
@@ -206,12 +220,16 @@ def create_request():
         filled=content.get('filled'),)
     db.session.add(meal_request)
     db.session.commit()
-    meal_request = db.session.query(Request).order_by(Request.id.desc()).first()
-    return jsonify({'request_id': meal_request.id})
+    return jsonify(meal_request.serialize)
 
 
 @main.route('/api/v1/requests/<int:id>', methods=['GET', 'PUT', 'DELETE'])
-def requests_id(id):
+def requests_id_function(id):
+    """
+    :param id: request id (int)
+    :return: return JSON of requests (GET) or changed request (PUT) or
+    message (DELETE)
+    """
     meal_request = Request.get_record_by_id(id)
 
     if not meal_request:
@@ -244,6 +262,9 @@ def delete_request(id):
 @main.route('/api/v1/proposals', methods=['GET', 'POST'])
 @auth.login_required
 def proposals_function():
+    """ show all proposals (GET) or create proposal (POST)
+    :return: return JSON of all proposals (GET) or new proposal (POST).
+    """
     if request.method == 'GET':
         return get_all_proposals()
 
@@ -280,7 +301,12 @@ def create_proposal():
 
 @main.route('/api/v1/proposals/<int:id>', methods=['GET', 'PUT', 'DELETE'])
 @auth.login_required
-def proposals_id(id):
+def proposals_id_function(id):
+    """
+    :param id: proposal id (int)
+    :return: return JSON of proposals (GET) or changed proposal (PUT) or
+    message (DELETE)
+    """
     proposal = Proposal.get_record_by_id(id)
 
     if not proposal:
@@ -296,10 +322,6 @@ def proposals_id(id):
         return delete_proposal(id)
 
 def update_proposal(id):
-    """
-    :param id: id of proposal
-    :return: user accepts proposal
-    """
     content = request.get_json(force=True)
     proposal = db.session.query(Proposal).filter_by(id=id).first()
 
@@ -326,10 +348,6 @@ def update_proposal(id):
 
 
 def delete_proposal(id):
-    """
-    :param id: id of proposal
-    :return: user denies proposal
-    """
     proposal = db.session.query(Proposal).filter_by(id=id).first()
     if not proposal:
         return 'proposal not found'
@@ -339,8 +357,10 @@ def delete_proposal(id):
 
 
 @main.route('/api/v1/dates', methods=['GET', 'POST'])
-def dates():
-
+def dates_function():
+    """ show all dates (GET) or create date (POST)
+    :return: return JSON of all dates (GET) or new date (POST).
+    """
     if request.method == 'GET':
         return get_dates()
 
@@ -354,7 +374,12 @@ def dates():
 
 
 @main.route('/api/v1/dates/<int:id>', methods=['GET', 'PUT', 'DELETE'])
-def get_date(id):
+def date_id_function(id):
+    """
+    :param id: date id (int)
+    :return: return JSON of dates (GET) or changed date (PUT) or
+    message (DELETE)
+    """
     date = Date.get_record_by_id(id)
 
     if not date:
