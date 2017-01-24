@@ -14,6 +14,8 @@ def get_geocode_location(location_string):
     :param location_string:
     :return: latitude and longitude of location string
     """
+    if not location_string:
+        return None, None
     location_string = location_string.replace(" ", "+")
     url = (
         'https://maps.googleapis.com/maps/api/geocode/json?address=%s&key=%s'

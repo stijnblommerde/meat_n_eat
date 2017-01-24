@@ -1,3 +1,4 @@
+import decimal
 import random, string
 from passlib.apps import custom_app_context as pwd_context
 from itsdangerous import(TimedJSONWebSignatureSerializer as Serializer, BadSignature, SignatureExpired)
@@ -10,13 +11,23 @@ secret_key = ''.join(random.choice(string.ascii_uppercase + string.digits) for
 class SharedMethods(object):
 
     @classmethod
+    def get_all_records(cls):
+        return db.session.query(cls).all()
+
+    @classmethod
     def get_record_by_id(cls, id):
         return db.session.query(cls).filter_by(id=id).first()
 
     @property
     def serialize(self):
-        """Return object data in easily serializeable format"""
-        d = {c.name: getattr(self, c.name) for c in self.__table__.columns}
+        """Return object data in easily serializable format"""
+        d = {}
+        for c in self.__table__.columns:
+            # convert decimal to string
+            value = getattr(self, c.name)
+            if isinstance(value, decimal.Decimal):
+                value = str(value)
+            d[c.name] = value
         return d
 
     def update(self, kwargs):
@@ -28,13 +39,17 @@ class SharedMethods(object):
         db.session.commit()
         return self
 
+    def delete(self):
+        db.session.delete(self)
+        db.session.commit()
+
 
 class User(db.Model, SharedMethods):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(32), index=True)
     password_hash = db.Column(db.String(64))
-    email = db.Column(db.String, index=True)
+    email = db.Column(db.String, index=True, unique=True, nullable=False)
     picture = db.Column(db.String)
     requests = db.relationship('Request', backref=db.backref(
         'user'), lazy='dynamic', cascade="all, delete, delete-orphan")
@@ -72,14 +87,6 @@ class User(db.Model, SharedMethods):
         user_id = data['id']
         return user_id
 
-    @classmethod
-    def get_all(cls):
-        return db.session.query(cls).all()
-
-    def delete(self):
-        db.session.delete(self)
-        db.session.commit()
-
     @staticmethod
     def get_user_by_id(id):
         user = User.query.filter_by(id=id).first()
@@ -101,9 +108,6 @@ class Request(db.Model, SharedMethods):
     proposals = db.relationship(
         'Proposal', backref=db.backref('request'), lazy='dynamic',
         cascade="all, delete, delete-orphan")
-
-    def __str__(self):
-        return
 
 
 class Proposal(db.Model, SharedMethods):
