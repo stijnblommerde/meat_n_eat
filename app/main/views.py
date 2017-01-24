@@ -120,28 +120,26 @@ def login(provider):
 #     return "logout"
 
 
-@main.route('/api/v1/users', methods=['POST'])
-def create_user():
-    content = request.get_json(force=True)
-    username = content.get('username')
-    password = content.get('password')
-    if not username or not password:
-        return make_response('username or password missing', 400)
-    if db.session.query(User).filter_by(username=username).first() is not None:
-        return make_response('user exists already', 400)
-    user = User(username=username)
-    user.hash_password(password)
-    db.session.add(user)
-    db.session.commit()
-    return jsonify({'user_id': user.id})
-
-
-@main.route('/api/v1/users', methods=['GET'])
+@main.route('/api/v1/users', methods=['GET', 'POST'])
 @auth.login_required
 def users_function():
     if request.method == 'GET':
         users = User.get_all()
         return jsonify(users=[user.serialize for user in users])
+    elif request.method == 'POST':
+        content = request.get_json(force=True)
+        username = content.get('username')
+        password = content.get('password')
+        if not username or not password:
+            return make_response('username or password missing', 400)
+        if db.session.query(User).filter_by(
+                username=username).first() is not None:
+            return make_response('user exists already', 400)
+        user = User(username=username)
+        user.hash_password(password)
+        db.session.add(user)
+        db.session.commit()
+        return jsonify({'user_id': user.id})
 
 
 @main.route('/api/v1/users/<int:id>', methods=['GET', 'PUT', 'DELETE'])

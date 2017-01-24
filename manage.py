@@ -14,7 +14,7 @@ if os.environ.get('MEAT_N_EAT_COVERAGE'):
 app = create_app(os.getenv('MEAT_N_EAT_CONFIG') or 'default')
 manager = Manager(app)
 migrate = Migrate(app, db)
-server = Server(host="0.0.0.0", port=5000)
+server = Server(host="0.0.0.0", port=6000)
 
 
 def make_shell_context():
