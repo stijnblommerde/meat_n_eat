@@ -1,4 +1,4 @@
-# Meat N' Eat
+# Meat N' Eat API
 
 **Host**<br />
 Udacity
