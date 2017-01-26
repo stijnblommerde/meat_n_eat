@@ -132,21 +132,6 @@ def users_function():
     elif request.method == 'POST':
         content = request.get_json(force=True)
         username = content.get('username')
-        password = content.get('password')
-        if not username or not password:
-            return make_response('username or password missing', 400)
-        if db.session.query(User).filter_by(
-                username=username).first() is not None:
-            return make_response('user exists already', 400)
-        user = User(username=username)
-        user.hash_password(password)
-        db.session.add(user)
-        db.session.commit()
-        return jsonify({'user_id': user.id})
-
-    elif request.method == 'POST':
-        content = request.get_json(force=True)
-        username = content.get('username')
         email = content.get('email')
         password = content.get('password')
         picture = content.get('picture')
