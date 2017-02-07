@@ -6,7 +6,7 @@ from flask import current_app
 
 
 def get_geocode_location(location_string):
-    """ Use Google Maps to convert a location into Latitute/Longitute coordinates
+    """ Use Google Maps to convert a location into Latitude/Longitude coordinates
 
     FORMAT: https://maps.googleapis.com/maps/api/geocode/json?
     address=1600+Amphitheatre+Parkway,+Mountain+View,+CA&key=API_KEY

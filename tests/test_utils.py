@@ -1,7 +1,58 @@
-from httplib2 import Http
+"""
+test_utils are a bunch of methods to create test data.
+these helper functions are tested as well to make sure that they work.
+
+test requirements:
+ - terminal tab 1: load test_vars.sh & start server (python manage.py runserver)
+ - terminal tab 2: load test_vars.sh & run tests (python manage.py test)
+"""
+
 import json
+import unittest
+from flask import current_app
+from httplib2 import Http
+
+from app import create_app, db
 from app.models import User, Request
-from app import db
+
+
+class UtilsTestCase(unittest.TestCase):
+
+    # boilerplate
+
+    def setUp(self):
+        self.app = create_app('testing')
+        self.app_context = self.app.app_context()
+        self.app_context.push()
+        db.create_all()
+
+    def tearDown(self):
+        db.session.remove()
+        db.drop_all()
+        self.app_context.pop()
+
+    # tests
+
+    def test_create_user(self):
+        user_id = create_user('stijn', 'test')
+        self.assertTrue(user_id)
+
+    def test_create_proposal(self):
+        create_user('stijn', 'test')
+        result = create_proposal('stijn', 'test')
+        self.assertTrue(result)
+
+    def test_create_request(self):
+        # create user
+        create_user('stijn', 'test')
+        result = create_request('stijn', 'test')
+        self.assertTrue(result)
+
+    def test_create_date(self):
+        """
+        :return: accept proposal and create a meetup date
+        """
+        pass
 
 
 def create_user(username, password):
@@ -74,4 +125,5 @@ def create_proposal(username, password, request_id, filled=False):
     except Exception as err:
         print(err)
         return None
+
 

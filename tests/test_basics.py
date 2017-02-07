@@ -36,49 +36,6 @@ class BasicsTestCase(unittest.TestCase):
     def test_app_is_testing(self):
         self.assertTrue(current_app.config['TESTING'])
 
-    # def test_create_user(self):
-    #     user_id = create_user('stijn', 'test')
-    #     self.assertTrue(user_id)
-    #
-    # def test_create_request(self):
-    #     # create user
-    #     create_user('stijn', 'test')
-    #     result = create_request('stijn', 'test')
-    #     self.assertTrue(result)
-    #
-    # def test_get_all_requests(self):
-    #
-    #     # create self and other
-    #     create_user('stijn', 'test')
-    #     create_user('casper', 'test')
-    #
-    #     # create two requests by other, one filled and one open
-    #     create_request('casper', 'test', False)
-    #     create_request('casper', 'test', True)
-    #
-    #     # get all open meal requests by other
-    #     try:
-    #         h = Http()
-    #         h.add_credentials(name='stijn', password='test')
-    #         url = 'http://localhost:5000/api/v1/requests'
-    #         resp, content_bytes = h.request(url, method='GET')
-    #         if resp['status'] != '201' and resp['status'] != '200':
-    #             raise Exception('Received an unsuccessful status code of %s' %
-    #                             resp['status'])
-    #         content = json.loads(content_bytes.decode())
-    #
-    #         # expected one meal request by user with id = 2
-    #         self.assertTrue(len(content['requests']) == 1)
-    #         self.assertTrue(content['requests'][0]['user_id'] == 2)
-    #     except Exception as err:
-    #         print(err)
-    #         return None
-
-    # def test_create_proposal(self):
-    #     create_user('stijn', 'test')
-    #     result = create_proposal('stijn', 'test')
-    #     self.assertTrue(result)
-
     def test_get_all_proposals(self):
         """
         :return: show all proposals made by yourself and others
@@ -116,11 +73,6 @@ class BasicsTestCase(unittest.TestCase):
         except Exception as err:
             print(err)
             return None
-
-    def test_create_date(self):
-        """
-        :return: accept proposal and create a meetup date
-        """
 
 
 
