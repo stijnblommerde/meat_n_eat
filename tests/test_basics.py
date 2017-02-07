@@ -1,7 +1,4 @@
 '''
-test requirements:
- - terminal tab 1: load test_vars.sh & start server (python manage.py runserver)
- - terminal tab 2: load test_vars.sh & run tests (python manage.py test)
 '''
 
 import json
@@ -10,7 +7,8 @@ from flask import current_app
 from httplib2 import Http
 
 from app import create_app, db
-from test_utils import create_user, create_request, create_proposal
+from tests.test_users import create_user
+from tests.test_utils import create_request, create_proposal
 
 from app.models import User, Request
 

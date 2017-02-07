@@ -13,6 +13,7 @@ if os.environ.get('MEAT_N_EAT_COVERAGE'):
 
 # create app with 'development' or 'testing' depending on the phase
 app = create_app('development')
+#app = create_app('testing')
 manager = Manager(app)
 migrate = Migrate(app, db)
 
@@ -21,6 +22,7 @@ server = Server(host="0.0.0.0", port=5000)
 
 # server runs on random free port
 # server = Server(host="0.0.0.0", port='0')
+
 
 def make_shell_context():
     return dict(app=app, db=db, User=User, Request=Request, Proposal=Proposal,

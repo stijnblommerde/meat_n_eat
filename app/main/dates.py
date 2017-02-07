@@ -1,14 +1,13 @@
 from flask import request, jsonify
-from flask_httpauth import HTTPBasicAuth
 
 from . import main
+from .authentication import auth
 from .. import db
 from ..models import Date
 
-auth = HTTPBasicAuth()
-
 
 @main.route('/api/v1/dates', methods=['GET', 'POST'])
+@auth.login_required
 def dates_function():
     """ show all dates (GET) or create date (POST)
     :return: return JSON of all dates (GET) or new date (POST).
@@ -26,6 +25,7 @@ def dates_function():
 
 
 @main.route('/api/v1/dates/<int:id>', methods=['GET', 'PUT', 'DELETE'])
+@auth.login_required
 def date_id_function(id):
     """
     :param id: date id (int)

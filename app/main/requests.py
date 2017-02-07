@@ -1,42 +1,18 @@
-from flask import request, jsonify
-from flask_httpauth import HTTPBasicAuth
+from flask import request, jsonify, g
 
 from app.external_apis import get_geocode_location
 from . import main
+from .authentication import auth
 from .. import db
 from ..models import Request
 
-auth = HTTPBasicAuth()
 
-
-@main.route('/api/v1/requests', methods=['GET', 'POST'])
+@main.route('/api/v1/requests', methods=['POST'])
 @auth.login_required
-def requests_function():
-    """ show all requests (GET) or create request (POST)
-    :return: return JSON of all requests (GET) or new request (POST).
-    """
-
-    if request.method == 'GET':
-        return get_all_requests()
-
-    elif request.method == 'POST':
-        return create_request()
-
-
-def get_all_requests():
-    """
-    :return: show all open requests of others
-    """
-    user = g.user
-    meal_requests = db.session.query(Request).filter(
-        Request.user_id != user.id, Request.filled != True).all()
-    if not meal_requests:
-        return 'no open meal requests of others'
-    else:
-        return jsonify(requests=[r.serialize for r in meal_requests])
-
-
 def create_request():
+    """ create request
+    :return: return JSON of new request
+    """
     content = request.get_json(force=True)
     location_string = content.get('location_string')
     if not location_string:
@@ -48,43 +24,66 @@ def create_request():
         latitude=latitude, longitude=longitude,
         meal_time=content.get('meal_time'),
         user_id=g.user.id,
-        filled=content.get('filled'),)
+        filled=content.get('filled'), )
     db.session.add(meal_request)
     db.session.commit()
     return jsonify(meal_request.serialize)
 
 
-@main.route('/api/v1/requests/<int:id>', methods=['GET', 'PUT', 'DELETE'])
-def requests_id_function(id):
+@main.route('/api/v1/requests')
+@auth.login_required
+def get_all_requests():
+    """ show all open requests
+    :return: return JSON of all requests
     """
+    user = g.user
+    meal_requests = db.session.query(Request).filter(
+        Request.filled != True).all()
+    if not meal_requests:
+        return jsonify(message='No open meal requests')
+    else:
+        return jsonify(requests=[r.serialize for r in meal_requests])
+
+
+@main.route('/api/v1/requests/<int:id>')
+@auth.login_required
+def get_request(id):
+    """ show request with given id
     :param id: request id (int)
-    :return: return JSON of requests (GET) or changed request (PUT) or
-    message (DELETE)
+    :return: return JSON of request
     """
     meal_request = Request.get_record_by_id(id)
-
     if not meal_request:
-        return 'Meal_request not found'
-
-    if request.method == 'GET':
-        return jsonify(meal_request.serialize)
-
-    elif request.method == 'PUT':
-        content = request.get_json(force=True)
-        updated_meal_request = meal_request.update(content)
-
-        if not updated_meal_request:
-            return 'Nothing to update'
-
-        return jsonify(updated_meal_request.serialize)
-
-    elif request.method == 'DELETE':
-        return delete_request(id)
+        return jsonify(message='Meal request not found')
+    return jsonify(meal_request.serialize)
 
 
+@main.route('/api/v1/requests/<int:id>', methods=['PUT'])
+@auth.login_required
 def update_request(id):
-    return 'update request'
+    """ change request with given id
+    :param id: request id (int)
+    :return: return JSON of changed request
+    """
+    content = request.get_json(force=True)
+    meal_request = Request.get_record_by_id(id)
+    if not meal_request:
+        return jsonify(message='Meal request not found')
+    updated_meal_request = meal_request.update(content)
+    if not updated_meal_request:
+        return jsonify(message='Nothing to update')
+    return jsonify(updated_meal_request.serialize)
 
 
+@main.route('/api/v1/requests/<int:id>', methods=['DELETE'])
+@auth.login_required
 def delete_request(id):
-    return 'delete request'
+    """ delete request with given id
+    :param id: request id (int)
+    :return: return JSON with message that request has been deleted
+    """
+    meal_request = Request.get_record_by_id(id)
+    if not meal_request:
+        return jsonify(message='Meal request not found')
+    meal_request.delete()
+    return jsonify(message='Meal request has been deleted')
