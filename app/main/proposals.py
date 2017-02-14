@@ -9,7 +9,7 @@ from .. import db
 from ..models import Proposal
 
 
-@main.route('/api/v1/proposals')
+@main.route('/api/v1/proposals/')
 @auth.login_required
 def get_all_proposals():
     """ Retrieves all meetup proposals for a given user
@@ -28,7 +28,7 @@ def get_all_proposals():
     return jsonify(proposals=[p.serialize for p in proposals])
 
 
-@main.route('/api/v1/proposals', methods=['POST'])
+@main.route('/api/v1/proposals/', methods=['POST'])
 @auth.login_required
 def create_proposal():
     """ Creates a new proposal to meetup on behalf of a user
@@ -44,9 +44,9 @@ def create_proposal():
         return make_response(json.dumps("Cannot make proposal to yourself."),
                              400)
     proposal = Proposal(user_proposed_to=user_proposed_to,
-                 user_proposed_from=user_proposed_from,
-                 request_id=content.get('request_id'),
-                 filled=content.get('filled'))
+                        user_proposed_from=user_proposed_from,
+                        request_id=content.get('request_id'),
+                        filled=content.get('filled'))
     db.session.add(proposal)
     db.session.commit()
     return jsonify(proposal.serialize)

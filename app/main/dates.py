@@ -6,7 +6,7 @@ from .. import db
 from ..models import Date
 
 
-@main.route('/api/v1/dates', methods=['GET', 'POST'])
+@main.route('/api/v1/dates/', methods=['GET', 'POST'])
 @auth.login_required
 def dates_function():
     """ show all dates (GET) or create date (POST)

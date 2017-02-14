@@ -1,5 +1,4 @@
-from flask import request, make_response, jsonify
-from flask_httpauth import HTTPBasicAuth
+from flask import request, make_response, jsonify, g
 
 from . import main
 from .authentication import auth
@@ -7,27 +6,24 @@ from .. import db
 from ..models import User
 
 
-@main.route('/api/v1/users')
+@main.route('/api/v1/users/')
 @auth.login_required
 def get_all_users():
-    """ show all user
-
+    """ Returns profile information off all users in the database.
+    Only logged in users can view user profiles.
     :return: return JSON of all users in database
     """
     users = User.get_all_records()
     return jsonify(users=[user.serialize for user in users])
 
 
-@main.route('/api/v1/users', methods=['POST'])
+@main.route('/api/v1/users/', methods=['POST'])
 def create_user():
     """ Creates a new user without using OAuth
-
-    As long as an existing username isn’t in the database, create a new user,
-    otherwise, return an appropriate error.
-
     TODO: highly recommended to implement secure HTTP if this endpoint is
     implemented.
-
+    As long as an email address isn’t in the database, create a new user,
+    otherwise, return an appropriate error.
     :return: return details of new user in JSON format.
     """
     content = request.get_json(force=True)
@@ -54,22 +50,24 @@ def get_user(id):
     :param id: user id (int)
     :return: return JSON of user
     """
-    user = User.get_record_by_id(id)
-    if not user:
-        return 'User not found'
+    user = g.user
+    if user.id != id:
+        return jsonify(message='You can only view your own profile')
     return jsonify(user.serialize)
 
 
 @main.route('/api/v1/users/<int:id>', methods=['PUT'])
 @auth.login_required
 def update_user(id):
-    """ update user data
+    """ Updates a specific user’s information
+    Server checks token to make sure only the logged in user can update her
+    profile.
     :param id: user id (int)
     :return: return JSON of changed user
     """
-    user = User.get_record_by_id(id)
-    if not user:
-        return 'User not found'
+    user = g.user
+    if user.id != id:
+        return jsonify(message='You can only change your own profile')
     content = request.get_json(force=True)
     updated_user = user.update(content)
     if not updated_user:
@@ -84,8 +82,8 @@ def delete_user(id):
     :param id: user id (int)
     :return: return message that the user has been deleted
     """
-    user = User.get_record_by_id(id)
-    if not user:
-        return 'User not found'
+    user = g.user
+    if user.id != id:
+        return jsonify(message='You can only delete your own profile')
     user.delete()
     return jsonify(message='User has been deleted')

@@ -1,7 +1,8 @@
 import decimal
 import random, string
 from passlib.apps import custom_app_context as pwd_context
-from itsdangerous import(TimedJSONWebSignatureSerializer as Serializer, BadSignature, SignatureExpired)
+from itsdangerous import (TimedJSONWebSignatureSerializer as Serializer,
+                          BadSignature, SignatureExpired)
 from . import db
 
 secret_key = ''.join(random.choice(string.ascii_uppercase + string.digits) for
@@ -113,9 +114,10 @@ class Request(db.Model, SharedMethods):
 class Proposal(db.Model, SharedMethods):
     __tablename__ = 'proposals'
     id = db.Column(db.Integer, primary_key=True)
-    user_proposed_to = db.Column(db.Integer)
-    user_proposed_from = db.Column(db.Integer)
-    request_id = db.Column(db.Integer, db.ForeignKey('requests.id'))
+    user_proposed_to = db.Column(db.Integer, nullable=False)
+    user_proposed_from = db.Column(db.Integer, nullable=False)
+    request_id = db.Column(db.Integer, db.ForeignKey('requests.id'),
+                           nullable=False)
     filled = db.Column(db.Boolean, default=False)
 
 
