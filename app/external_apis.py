@@ -1,7 +1,5 @@
 import httplib2
 import json
-import os
-import datetime
 from flask import current_app
 
 

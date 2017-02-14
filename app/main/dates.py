@@ -45,11 +45,8 @@ def create_date():
         return jsonify(message="Recipient of proposal rejected a date and the "
                                "proposal is deleted")
     else:
-        # TODO:find a local restaurant that matches the requested cuisine type
-        # TODO:near the original proposer’s location
         restaurant = find_restaurant(meal_request.meal_type,
                                      meal_request.location_string)
-    # TODO: add date params
     if not restaurant:
         return jsonify(message="No restaurant found")
     date = Date(
