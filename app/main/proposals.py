@@ -1,6 +1,6 @@
 import json
 
-from flask import request, make_response, jsonify, g
+from flask import request, jsonify, g
 from sqlalchemy import or_
 
 from . import main
@@ -41,8 +41,7 @@ def create_proposal():
     user_proposed_from = g.user.id
     user_proposed_to = content.get('user_proposed_to')
     if user_proposed_from == user_proposed_to:
-        return make_response(json.dumps("Cannot make proposal to yourself."),
-                             400)
+        return jsonify(message="Cannot make proposal to yourself.")
     proposal = Proposal(user_proposed_to=user_proposed_to,
                         user_proposed_from=user_proposed_from,
                         request_id=content.get('request_id'),

@@ -101,4 +101,4 @@ def find_restaurant(mealType, location_string):
                 'address': restaurant_address,
                 'image_url': image_url}
     else:
-        return 'no restaurants found'
+        return None
