@@ -7,3 +7,4 @@ app/__init__.pyc
 data-dev.sqlite
 data-test.sqlite
 geckodriver.log
+vars.sh
