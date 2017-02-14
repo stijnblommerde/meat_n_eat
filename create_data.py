@@ -12,22 +12,29 @@ db.drop_all()
 db.create_all()
 
 # add users
-stijn = User(username='stijn', password='test', email='stijn@example.com')
-db.session.add(stijn)
-casper = User(username='casper', password='test', email='casper@example.com')
-db.session.add(casper)
+jack = User(username='jack', password='test', email='jack@example.com')
+db.session.add(jack)
+jill = User(username='jill', password='test', email='jill@example.com')
+db.session.add(jill)
+db.session.commit()
 
-# add request
-location_string = 'amsterdam'
+# add request: jack makes a meal request
+location_string = 'amsterdam, europaplein'
 latitude, longitude = get_geocode_location(location_string)
-request = Request(user_id=2, meal_type='pizza', meal_time='lunch',
-                  location_string='amsterdam', latitude=latitude,
+
+request = Request(user_id=jack.id, meal_type='sushi', meal_time='dinner',
+                  location_string=location_string, latitude=latitude,
                   longitude=longitude, filled=False)
 db.session.add(request)
-
-# add proposal
-# add date
-
 db.session.commit()
+
+# add proposal: jill proposes to jack
+proposal = Proposal(user_proposed_from=jill.id, user_proposed_to=jack.id, 
+                    request_id=request.id, filled=False)
+db.session.add(proposal)
+db.session.add(proposal)
+db.session.commit()
+
+# add date: jack agrees agrees to jill's proposal
 
 print("Initial data created!")

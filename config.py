@@ -15,7 +15,7 @@ class Config:
     FOURSQUARE_CLIENT_SECRET = os.environ.get('FOURSQUARE_CLIENT_SECRET')
     FOURSQUARE_VERSION = str(datetime.date.today()).replace('-', '')
     FOURSQUARE_INTENT = "browse"
-    FOURSQUARE_RADIUS = "10000"
+    FOURSQUARE_RADIUS = "5000"
 
     @staticmethod
     def init_app(app):

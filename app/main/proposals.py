@@ -34,10 +34,10 @@ def create_proposal():
     """ Creates a new proposal to meetup on behalf of a user
     User is verified by the provided token and identified as the maker of the
     proposal.
-
     :return: return JSON of new proposal
     """
     content = request.get_json(force=True)
+    # TODO: validate input data in API
     user_proposed_from = g.user.id
     user_proposed_to = content.get('user_proposed_to')
     if user_proposed_from == user_proposed_to:
@@ -57,9 +57,8 @@ def get_proposal(id):
     """ Retrieves information about a specific proposal.
     he id of the user should match either the proposal maker or recipient in
     order to access this view.
-
     :param id: proposal id (int)
-    :return: return JSON of proposals
+    :return: return JSON of proposal
     """
     user = g.user
     proposal = Proposal.get_record_by_id(id)
@@ -85,7 +84,7 @@ def update_proposal(id):
     user = g.user
     proposal = db.session.query(Proposal).filter_by(id=id).first()
     if not proposal:
-        return jsonify(message='proposal not found')
+        return jsonify(message='Proposal not found')
     if not (user.id == proposal.user_proposed_from):
         return jsonify(message="Only proposal maker can access this "
                                "information")
@@ -111,6 +110,5 @@ def delete_proposal(id):
     if not (user.id == proposal.user_proposed_from):
         return jsonify(message="Only proposal maker can access this "
                                "information")
-    db.session.delete(proposal)
-    db.session.commit()
+    proposal.delete()
     return jsonify(message='proposal deleted')
