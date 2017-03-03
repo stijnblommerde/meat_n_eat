@@ -1,6 +1,3 @@
-'''
-'''
-
 import json
 import unittest
 from httplib2 import Http
@@ -38,7 +35,7 @@ class RequestTestCase(unittest.TestCase):
         try:
             h = Http()
             h.add_credentials(name='stijn', password='test')
-            url = 'http://localhost:5000/api/v1/requests'
+            url = 'http://localhost:5000/api/v1/requests/'
             response, content_bytes = h.request(url, method='GET')
             if response['status'] != '201' and response['status'] != '200':
                 raise Exception('Received an unsuccessful status code of %s' %
@@ -116,7 +113,7 @@ def create_request(username, password, filled=False):
         h = Http()
         user = db.session.query(User).filter_by(username=username).first()
         h.add_credentials(name=username, password=password)
-        url = 'http://localhost:5000/api/v1/requests'
+        url = 'http://localhost:5000/api/v1/requests/'
         location_string = 'amsterdam'
         data = dict(meal_type='pizza',
                     location_string=location_string,

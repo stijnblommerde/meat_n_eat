@@ -31,8 +31,8 @@ class SharedMethods(object):
             d[c.name] = value
         return d
 
-    def update(self, **kwargs):
-        for key, value in kwargs.items():
+    def update(self, content):
+        for key, value in content.items():
             setattr(self, key, value)
         db.session.add(self)
         if not db.session.is_modified(self):
