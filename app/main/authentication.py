@@ -17,7 +17,6 @@ def verify_password(username_or_token, password):
     """ verification of token or username & password
     :return: returns true for valid user credentials
     """
-    print('enter verify token')
     #Try to see if it's a token first
     user_id = User.verify_auth_token(username_or_token)
     if user_id:
@@ -51,7 +50,6 @@ def login(provider):
     :param provider: oauth provider, e.g. Google or Facebook
     :return: send one-time oauth code and receive token
     """
-    print('enter login')
     # step 1: parse the auth code
     # auth code is door user opgehaald bij google
     content = request.get_json(force=True)

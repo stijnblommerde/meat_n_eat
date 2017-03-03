@@ -5,11 +5,9 @@ UsersTestCase
 
 import json
 import unittest
-from flask import current_app
 from httplib2 import Http
-
+from flask import current_app
 from app import create_app, db
-from app.models import User, Request
 
 
 class UsersTestCase(unittest.TestCase):
@@ -109,9 +107,8 @@ def create_user(username, password, email):
     :return: user id
     """
     h = Http()
-    url = 'http://localhost:5000/api/v1/users'
-    data = dict(username=username, password=password,
-                email=email)
+    url = 'http://localhost:5000/api/v1/users/'
+    data = dict(username=username, password=password, email=email)
     try:
         response, content_bytes = h.request(
             url, method='POST',
