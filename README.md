@@ -26,7 +26,7 @@ aesthetically pleasing.
 * Add virtual environment: virtualenv -p python3 env
 * Install requirements: pip install -r requirements.txt
 * Run server: python manage.py runserver
-* Access API via requests, for instance using POSTMAN
+* Access API via requests, for instance using Postman
 
 **Run tests**
 * Get key for using Google Maps Geocoding API: https://developers.google.com/maps/documentation/geocoding/start
