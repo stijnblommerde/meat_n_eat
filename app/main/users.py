@@ -1,9 +1,19 @@
+from flask import Request
 from flask import request, make_response, jsonify, g
 
 from . import main
 from .authentication import auth
 from .. import db
 from ..models import User
+
+# TODO: finish experiment with overriding get_json
+# class FlaskOverride(Request):
+#
+#     def __init__(self):
+#         super(FlaskOverride, self).__init__(self)
+#
+#     def get_json(self, force=False, silent=False, cache=True):
+#         print("override get_json")
 
 
 @main.route('/api/v1/users/')
@@ -69,6 +79,9 @@ def update_user(id):
     if user.id != id:
         return jsonify(message='You can only change your own profile')
     content = request.get_json(force=True)
+    # TODO: finish experiment with overriding get_json
+    # fo = FlaskOverride()
+    # content = fo.get_json(force=True)
     updated_user = user.update(content)
     if not updated_user:
         return 'Nothing to update'

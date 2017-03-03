@@ -22,12 +22,12 @@ class RequestTestCase(unittest.TestCase):
 
     # tests
     def test_create_request(self):
-        create_user('stijn', 'test', 'stijnblommerde@example.com')
+        create_user('stijn', 'test', 'stijn@example.com')
         result = create_request('stijn', 'test')
         self.assertTrue(result)
 
     def test_get_all_requests(self):
-        create_user('stijn', 'test', 'stijnblommerde@example.com')
+        create_user('stijn', 'test', 'stijn@example.com')
 
         # create one open and one filled meal request
         create_request('stijn', 'test', False)
@@ -50,7 +50,7 @@ class RequestTestCase(unittest.TestCase):
                             response['status'])
         
     def test_get_request(self):
-        user = create_user('stijn', 'test', 'stijnblommerde@example.com')
+        user = create_user('stijn', 'test', 'stijn@example.com')
         request = create_request('stijn', 'test', False)
         try:
             h = Http()
@@ -69,7 +69,7 @@ class RequestTestCase(unittest.TestCase):
                             response['status'])
 
     def test_update_request(self):
-        user = create_user('stijn', 'test', 'stijnblommerde@example.com')
+        user = create_user('stijn', 'test', 'stijn@example.com')
         request = create_request('stijn', 'test', False)
         try:
             h = Http()
@@ -92,7 +92,7 @@ class RequestTestCase(unittest.TestCase):
                             response['status'])
 
     def test_delete_request(self):
-        user = create_user('stijn', 'test', 'stijnblommerde@example.com')
+        user = create_user('stijn', 'test', 'stijn@example.com')
         request = create_request('stijn', 'test', False)
         self.assertTrue(request.get('id'))
         try:

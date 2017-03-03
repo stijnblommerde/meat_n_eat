@@ -1,7 +1,7 @@
 import json
 import unittest
 from httplib2 import Http
-
+from flask import current_app
 from app import create_app, db
 
 
@@ -103,8 +103,7 @@ def create_user(username, password, email):
     """
     h = Http()
     url = 'http://localhost:5000/api/v1/users/'
-    data = dict(username=username, password=password,
-                email=email)
+    data = dict(username=username, password=password, email=email)
     try:
         response, content_bytes = h.request(
             url, method='POST',
