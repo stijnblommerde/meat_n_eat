@@ -32,11 +32,10 @@ aesthetically pleasing.
 * Get key for using Google Maps Geocoding API: https://developers.google.com/maps/documentation/geocoding/start
 * Get Id secret for using Foursquare API: foursquare.com > create account > receive credentials
 * create and load environmental vars: 
-..*MEAT_N_EAT_CONFIG='testing'
-..*GOOGLE_API_KEY='your Google key' 
-..*FOURSQUARE_CLIENT_ID='your foursquare client id'
-..*FOURSQUARE_CLIENT_SECRET='your foursquare client secret'
+  * MEAT_N_EAT_CONFIG='testing'
+  * GOOGLE_API_KEY='your Google key' 
+  * FOURSQUARE_CLIENT_ID='your foursquare client id'
+  * FOURSQUARE_CLIENT_SECRET='your foursquare client secret'
 * run server: python manage.py runserver
 * run tests: python manage.py test
-* 
 
