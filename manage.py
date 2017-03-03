@@ -12,7 +12,6 @@ if os.environ.get('MEAT_N_EAT_COVERAGE'):
     COV.start()
 
 app = create_app(os.environ.get('MEAT_N_EAT_CONFIG') or 'development')
-app = create_app('testing')
 manager = Manager(app)
 migrate = Migrate(app, db)
 
